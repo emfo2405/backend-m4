@@ -1,5 +1,10 @@
+require("dotenv").config();
 const express = require("express");
 const router = express.Router();
+const sqlite3 = require("sqlite3").verbose();
+const bcrypt = require("bcrypt");
+
+const db = new sqlite3.Database(process.env.DATABASE);
 
 router.post("/register", async (req, res) => {
     try {
@@ -8,9 +13,25 @@ router.post("/register", async (req, res) => {
         //Validera input
         if (!username || !password || !email) {
             return res.status(400).json({error: "Felaktig data, skicka användarnamn, lösenord och epost-adress"})
+        } 
+
+        //Kryptera lösenord
+        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+            
+        
+        const sql = `INSERT INTO users (username, password, email) VALUES(?,?,?)`;
+        db.run(sql, [username, hashedPassword, email], (err) => {
+
+        if(err) {
+            res.status(400).json({message: "Det gick inte att skapa användaren..."});
         } else {
             res.status(201).json({message: "Användare skapad"});
         }
+
+        }); 
+
+        
+        
 
         
 
