@@ -20,7 +20,23 @@ router.post("/register", async (req, res) => {
 });
 
 router.post("/login", async (req, res) => {
-    console.log("inloggning påbörjad")
+    try {
+        const { username, password } = req.body;
+
+            if (!username || !password ) {
+            return res.status(400).json({error: "Felaktig data, skicka användarnamn och lösenord"});
+        } 
+        
+         else if (username === "emfo"  && password === "hejsan") {
+            res.status(200).json({message: "Inloggning lyckades"})
+        } else {
+            res.status(401).json({error: "Ogiltigt användarnamn eller lösenord"});
+        }
+
+
+    } catch {
+        res.status(500).json({error: "Server error"});
+    }
 });
 
 module.exports = router;
