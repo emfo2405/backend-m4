@@ -13,7 +13,14 @@ router.post("/register", async (req, res) => {
         //Validera input
         if (!username || !password || !email) {
             return res.status(400).json({error: "Felaktig data, skicka användarnamn, lösenord och epost-adress"})
-        } 
+        }
+
+        const checkUser = `SELECT * FROM users WHERE username=?, email=?`;
+        db.get(checkUser, [username, email], async(row) => {
+         if (row) {
+                res.status(400).json({message: "Användarnamn eller e-post finns redan"})
+            }
+        })
 
         //Kryptera lösenord
         const hashedPassword = await bcrypt.hash(req.body.password, 10);
