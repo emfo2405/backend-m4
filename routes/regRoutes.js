@@ -48,11 +48,23 @@ router.post("/login", async (req, res) => {
             return res.status(400).json({error: "Felaktig data, skicka användarnamn och lösenord"});
         } 
         
-         else if (username === "emfo"  && password === "hejsan") {
-            res.status(200).json({message: "Inloggning lyckades"})
-        } else {
-            res.status(401).json({error: "Ogiltigt användarnamn eller lösenord"});
-        }
+        //Kolla om användaren finns i databasen
+        const sql = `SELECT * FROM users WHERE username=?`;
+        db.get(sql, [username], async (err, row) => {
+            if(err) {
+                res.status(400).json({message: "Autentiseringen gick fel"})
+            } else if (!row) {
+                res.status(400).json({message: "Lösenord eller användarnamn stämde inte"})
+            } else {
+                const passwordMatch = await bcrypt.compare(password, row.password);
+
+                if(!passwordMatch) {
+                    res.status(401).json({message: "Lösenordet eller användarnamn stämde inte"})
+                } else {
+                    res.status(200).json({message: "Inloggning lyckades"});
+                }
+            }
+        })
 
 
     } catch {
