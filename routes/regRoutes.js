@@ -3,7 +3,7 @@ const router = express.Router();
 
 router.post("/register", async (req, res) => {
     try {
-        const { username, password, email, account_created } = req.body;
+        const { username, password, email } = req.body;
 
         //Validera input
         if (!username || !password || !email) {

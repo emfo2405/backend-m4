@@ -1,7 +1,7 @@
 {
   "name": "backend-m4",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "serve": "nodemon server.js"
   },
@@ -14,6 +14,7 @@
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "nodemon": "^3.1.10",
-    "router": "^2.2.0"
+    "router": "^2.2.0",
+    "sqlite3": "^5.1.7"
   }
 }
