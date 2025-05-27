@@ -5,7 +5,7 @@ const sqlite3 = require("sqlite3").verbose();
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
-const db = new sqlite3.Database(process.env.DATABASE);
+
 
 router.post("/register", async (req, res) => {
     try {
