@@ -3,6 +3,7 @@ const express = require("express");
 const router = express.Router();
 const sqlite3 = require("sqlite3").verbose();
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 const db = new sqlite3.Database(process.env.DATABASE);
 
@@ -15,12 +16,14 @@ router.post("/register", async (req, res) => {
             return res.status(400).json({error: "Felaktig data, skicka användarnamn, lösenord och epost-adress"})
         }
 
-        const checkUser = `SELECT * FROM users WHERE username=?, email=?`;
-        db.get(checkUser, [username, email], async(row) => {
-         if (row) {
-                res.status(400).json({message: "Användarnamn eller e-post finns redan"})
+        const checkUser = `SELECT * FROM users WHERE username=? OR email=?`;
+        db.get(checkUser, [username, email], async(err, row) => {
+            if(err) {
+                return res.status(500).json({ message: "Databasfel"});
+            } else if (row) {
+                return res.status(400).json({message: "Användarnamn eller e-post finns redan"});
             }
-        })
+        
 
         //Kryptera lösenord
         const hashedPassword = await bcrypt.hash(req.body.password, 10);
@@ -34,7 +37,7 @@ router.post("/register", async (req, res) => {
         } else {
             res.status(201).json({message: "Användare skapad"});
         }
-
+})
         }); 
 
         
@@ -68,7 +71,14 @@ router.post("/login", async (req, res) => {
                 if(!passwordMatch) {
                     res.status(401).json({message: "Lösenordet eller användarnamn stämde inte"})
                 } else {
-                    res.status(200).json({message: "Inloggning lyckades"});
+
+                    const payload = {username: username };
+                    const token = jwt.sign(payload, process.env.JWT_SECRET_KEY, {expiresIn: '1h'});
+                    const response = {
+                        message: "Användaren loggade in",
+                        token: token
+                    }
+                    res.status(200).json({response});
                 }
             }
         })

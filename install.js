@@ -7,7 +7,7 @@ const db = new sqlite3.Database(process.env.DATABASE);
 
 //Skapa tabell för databas
 db.serialize(() => {
-    db.run("DROP TABLE IF EXISTS users");
+   
 
     db.run(`CREATE TABLE users(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
