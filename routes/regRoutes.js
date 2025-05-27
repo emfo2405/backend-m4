@@ -2,10 +2,31 @@ require("dotenv").config();
 const express = require("express");
 const router = express.Router();
 const sqlite3 = require("sqlite3").verbose();
+require("dotenv").config();
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
+const db = new sqlite3.Database(process.env.DATABASE);
 
+
+router.get("/register", (req, res) => {
+        let sql = `SELECT * FROM users;`
+        db.all(sql, [], (err, rows) =>{
+        //Felmeddelande om något går fel
+         if(err) {
+        res.status(500).json({error: "Något gick fel: " + err});
+        return;
+         }
+         console.log(rows);
+         //Om det inte finns något i tabellen visas felmeddelande annars returneras resultat
+         if(rows.length === 0) {
+            res.status(200).json({error: "Inga användare hittades"});
+         } else {
+            res.json(rows);
+         }
+        })
+        
+});
 
 router.post("/register", async (req, res) => {
     try {

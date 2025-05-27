@@ -18,24 +18,7 @@ app.use("/api", regRoutes);
 
 const db = new sqlite3.Database(process.env.DATABASE);
 
-app.get("/api/register", (req, res) => {
-        let sql = `SELECT * FROM users;`
-        db.all(sql, [], (err, rows) =>{
-        //Felmeddelande om något går fel
-         if(err) {
-        res.status(500).json({error: "Något gick fel: " + err});
-        return;
-         }
-         console.log(rows);
-         //Om det inte finns något i tabellen visas felmeddelande annars returneras resultat
-         if(rows.length === 0) {
-            res.status(200).json({error: "Inga användare hittades"});
-         } else {
-            res.json(rows);
-         }
-        })
-        
-});
+
 
 
 //Skyddad route
