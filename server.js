@@ -54,6 +54,8 @@ function authenticateToken(req, res, next) {
     });    
 }
 
+const port = process.env.PORT || 3001;
+
 //Starta applikationen
 app.listen(port, () => {
     console.log("Server running at http://localhost:" + port);

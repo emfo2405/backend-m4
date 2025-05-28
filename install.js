@@ -22,11 +22,11 @@ async function install() {
         console.log("Anslutning till databas lyckades");
         const sql = `
         CREATE TABLE users(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         username VARCHAR(255) NOT NULL UNIQUE,
         password VARCHAR(255) NOT NULL,
         email VARCHAR(100) NOT NULL,
-        account_created DATETIME DEFAULT CURRENT_TIMESTAMP);
+        account_created DATE DEFAULT CURRENT_TIMESTAMP);
         `;
         await client.query(sql);
         console.log("tabell skapad");
