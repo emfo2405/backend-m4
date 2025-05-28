@@ -1,20 +1,45 @@
 require("dotenv").config();
 const express = require("express");
-const sqlite3 = require("sqlite3").verbose();
+const { Client } = require("pg");
 
-//Koppla till databas
-const db = new sqlite3.Database(process.env.DATABASE);
+//Funktion för att koppla till databas och skapa tabell
+async function install() {
 
-//Skapa tabell för databas
-db.serialize(() => {
-   
+    //Koppling till databas med inställningar från .env-fil
+    const client = new Client ({
+        host: process.env.DB_HOST,
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
+        database: process.env.DB_DATABASE,
+        port: process.env.DB_PORT,
+        ssl: {
+            rejectUnauthorized: false
+        }
+    });
 
-    db.run(`CREATE TABLE users(
+    try {
+        await client.connect();
+        console.log("Anslutning till databas lyckades");
+        const sql = `
+        CREATE TABLE users(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username VARCHAR(255) NOT NULL UNIQUE,
         password VARCHAR(255) NOT NULL,
         email VARCHAR(100) NOT NULL,
-        account_created DATETIME DEFAULT CURRENT_TIMESTAMP)`);
-
+        account_created DATETIME DEFAULT CURRENT_TIMESTAMP);
+        `;
+        await client.query(sql);
         console.log("tabell skapad");
-});
+
+        //Fånga upp fel
+    } catch (error) {
+        console.error(error);
+    } finally {
+        await client.end();
+    }
+
+}
+
+
+//Kör funktionen för att koppla till databasen
+install();
