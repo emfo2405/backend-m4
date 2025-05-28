@@ -1,28 +1,45 @@
 require("dotenv").config();
 const express = require("express");
 const router = express.Router();
-const sqlite3 = require("sqlite3").verbose();
+const { Client } = require("pg");
 require("dotenv").config();
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
-const db = new sqlite3.Database(process.env.DATABASE);
+//Uppkoppling till databas
+const client = new Client ({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_DATABASE,
+    port: process.env.DB_PORT,
+    ssl: {
+        rejectUnauthorized: false
+    }
+});
+
+//Felmeddelande om inte anslutningen fungerar korrekt
+client.connect((err) => {
+if(err) {
+    console.error("Fel vid anslutning: " + err);
+}
+});
 
 
 router.get("/register", (req, res) => {
-        let sql = `SELECT * FROM users;`
-        db.all(sql, [], (err, rows) =>{
+
+
+        client.query(`SELECT * FROM users;`, (err, results) =>{
         //Felmeddelande om något går fel
          if(err) {
         res.status(500).json({error: "Något gick fel: " + err});
         return;
          }
-         console.log(rows);
          //Om det inte finns något i tabellen visas felmeddelande annars returneras resultat
-         if(rows.length === 0) {
+         if(results.rows.length === 0) {
             res.status(200).json({error: "Inga användare hittades"});
          } else {
-            res.json(rows);
+            res.json(results.rows);
          }
         })
         
@@ -37,11 +54,10 @@ router.post("/register", async (req, res) => {
             return res.status(400).json({error: "Felaktig data, skicka användarnamn, lösenord och epost-adress"})
         }
 
-        const checkUser = `SELECT * FROM users WHERE username=? OR email=?`;
-        db.get(checkUser, [username, email], async(err, row) => {
+        client.query(`SELECT * FROM users WHERE username=$1 OR email=$2`, [username, email], async(err, results) => {
             if(err) {
                 return res.status(500).json({ message: "Databasfel"});
-            } else if (row) {
+            } else if (results.rows.length > 0) {
                 return res.status(400).json({message: "Användarnamn eller e-post finns redan"});
             }
         
@@ -50,8 +66,7 @@ router.post("/register", async (req, res) => {
         const hashedPassword = await bcrypt.hash(req.body.password, 10);
             
         
-        const sql = `INSERT INTO users (username, password, email) VALUES(?,?,?)`;
-        db.run(sql, [username, hashedPassword, email], (err) => {
+        client.query(`INSERT INTO users (username, password, email) VALUES($1,$2,$3)`, [username, hashedPassword, email], (err) => {
 
         if(err) {
             res.status(400).json({message: "Det gick inte att skapa användaren..."});
@@ -80,14 +95,14 @@ router.post("/login", async (req, res) => {
         } 
         
         //Kolla om användaren finns i databasen
-        const sql = `SELECT * FROM users WHERE username=?`;
-        db.get(sql, [username], async (err, row) => {
+        client.query(`SELECT * FROM users WHERE username=$1`, [username], async (err, results) => {
             if(err) {
                 res.status(400).json({message: "Autentiseringen gick fel"})
-            } else if (!row) {
+            } else if (results.rows.length === 0) {
                 res.status(400).json({message: "Lösenord eller användarnamn stämde inte"})
             } else {
-                const passwordMatch = await bcrypt.compare(password, row.password);
+                let user = results.rows[0];
+                const passwordMatch = await bcrypt.compare(password, user.password);
 
                 if(!passwordMatch) {
                     res.status(401).json({message: "Lösenordet eller användarnamn stämde inte"})
