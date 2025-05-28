@@ -6,7 +6,7 @@ const { Client } = require("pg");
 async function install() {
 
     //Koppling till databas med inställningar från .env-fil
-    const client = new Client ({
+    const client = new Client({
         host: process.env.DB_HOST,
         user: process.env.DB_USER,
         password: process.env.DB_PASSWORD,
@@ -17,6 +17,7 @@ async function install() {
         }
     });
 
+    //Skapa tabell i databas
     try {
         await client.connect();
         console.log("Anslutning till databas lyckades");
